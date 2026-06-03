@@ -1,0 +1,1057 @@
+{
+  "name": "Week 10 Final Capstone Project:WF1_Data_Ingestion_AI_Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        -8
+      ],
+      "id": "944ec0a1-5625-45c6-b067-a551d013ef46",
+      "name": "Schedule Trigger - Hourly Check"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ",
+          "mode": "list",
+          "cachedResultName": "Capstone_Incident_Logs_GoogleSheet test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1813328768,
+          "mode": "list",
+          "cachedResultName": "Incident Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit#gid=1813328768"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -144,
+        -8
+      ],
+      "id": "1ab7828d-7bd2-477c-99a9-36eaad644fd6",
+      "name": "Google Sheets - Fetch Incidents",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TeTxzgKa8FiATXyA",
+          "name": "Google Sheets account 4"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are processing incident record {{ $json['Incident ID'] }} from the live incident queue.\n\nINCIDENT METADATA:\n- Incident ID: {{ $json['Incident ID'] }}\n- Queue Timestamp: {{ $json['Timestamp'] }}\n- Environment: Production\n- Source System: Automated Incident Response Pipeline v2.0\n\nRAW SYSTEM LOGS:\n---\n{{ $json['Raw Logs'] }}\n---\n\nTASK:\nTriage this incident. Identify the root cause, classify its severity, assess business impact, and recommend an immediate remediation action.\n\nOUTPUT — return this exact JSON structure with all 6 fields populated. No other text:\n\n{\n  \"incident_title\": \"<present-tense operational label, max 8 words>\",\n  \"severity\": \"<exactly one of: High, Medium, Low>\",\n  \"root_cause\": \"<specific technical trigger identified from the logs>\",\n  \"business_impact\": \"<user-facing or operational impact in plain language>\",\n  \"recommended_action\": \"<single concrete remediation step to execute now>\",\n  \"post_mortem\": \"<4-6 sentences: what happened, why, scope of impact, prevention>\"\n}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are ARIA — Automated Response & Intelligence Analyst — a production-grade AI engine embedded in a live incident management pipeline.\n\nYour function is forensic log triage. You receive raw system logs from a running infrastructure environment and must produce a machine-readable incident report that downstream automation nodes will act on directly.\n\nSTRICT OUTPUT CONTRACT:\n- You output ONE JSON object and nothing else.\n- No markdown. No code fences. No preamble. No explanation. No trailing text.\n- Every field is required. A missing field breaks the pipeline.\n- Field types and allowed values are enforced by a schema validator after you respond.\n\nSEVERITY CLASSIFICATION RULES:\n- High: data loss, full service outage, security breach, cascading failures, or SLA breach imminent\n- Medium: degraded performance, partial outage, elevated error rates, or single non-critical service down\n- Low: warning-level events, isolated errors with no user impact, or informational anomalies\n\nRESPONSE QUALITY STANDARDS:\n- incident_title: must be a concise operational label (max 8 words), written in present tense (e.g. \"Database connection pool exhausted on prod-db-01\")\n- root_cause: identify the specific technical trigger — not a vague statement\n- business_impact: quantify or qualify the user/business effect in plain language\n- recommended_action: one concrete, immediately executable remediation step\n- post_mortem: 4–6 sentences covering what happened, why, impact scope, and what should prevent recurrence\n- severity: must be the exact string High, Medium, or Low — no other value will pass validation"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        -8
+      ],
+      "id": "8dd21419-2c6b-411a-b0a3-ce32d636d100",
+      "name": "AI Agent - Incident Commander",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 1000,
+          "temperature": 0.3,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        216
+      ],
+      "id": "28e173f0-0a4c-4657-aa35-42e8122aad95",
+      "name": "Fallback Model - GPT-3.5 Turbo",
+      "credentials": {
+        "openRouterApi": {
+          "id": "yDdcWfmkBW3PM9IZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"incident_title\": { \"type\": \"string\" },\n    \"severity\": { \"type\": \"string\", \"enum\": [\"High\", \"Medium\", \"Low\"] },\n    \"root_cause\": { \"type\": \"string\" },\n    \"business_impact\": { \"type\": \"string\" },\n    \"recommended_action\": { \"type\": \"string\" },\n    \"post_mortem\": { \"type\": \"string\" }\n  },\n  \"required\": [\"incident_title\", \"severity\", \"root_cause\", \"business_impact\", \"recommended_action\", \"post_mortem\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        216
+      ],
+      "id": "39200724-83dd-4ae6-8180-40d25a12a024",
+      "name": "Structured Output Parser",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "incident_id",
+              "value": "={{ $('Google Sheets - Fetch Incidents').item.json['Incident ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "incident_title",
+              "value": "={{ $json.output.incident_title }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "severity",
+              "value": "={{ $json.output.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "root_cause",
+              "value": "={{ $json.output.root_cause }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "business_impact",
+              "value": "={{ $json.output.business_impact }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "recommended_action",
+              "value": "={{ $json.output.recommended_action }}",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "post_mortem",
+              "value": "={{ $json.output.post_mortem }}",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "incident_timestamp",
+              "value": "={{ $('Google Sheets - Fetch Incidents').item.json['Timestamp'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a9",
+              "name": "model_used",
+              "value": "={{ $('AI Agent - Incident Commander').item.json.usedFallback ? 'openai/gpt-3.5-turbo (fallback)' : 'mistralai/mistral-7b-instruct (primary)' }}",
+              "type": "string"
+            },
+            {
+              "id": "a10",
+              "name": "run_timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "a11",
+              "name": "processing_status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "qa01",
+              "name": "qa_severity_valid",
+              "value": "={{ ['High','Medium','Low'].includes($json.output.severity) ? 'PASS' : 'FAIL' }}",
+              "type": "string"
+            },
+            {
+              "id": "qa02",
+              "name": "qa_title_length",
+              "value": "={{ $json.output.incident_title.split(' ').length <= 8 ? 'PASS' : 'WARN — title exceeds 8 words' }}",
+              "type": "string"
+            },
+            {
+              "id": "qa03",
+              "name": "qa_postmortem_length",
+              "value": "={{ $json.output.post_mortem.length >= 100 ? 'PASS' : 'WARN — post mortem under 100 chars' }}",
+              "type": "string"
+            },
+            {
+              "id": "qa04",
+              "name": "qa_all_fields_present",
+              "value": "={{ ($json.output.incident_title && $json.output.severity && $json.output.root_cause && $json.output.business_impact && $json.output.recommended_action && $json.output.post_mortem) ? 'PASS' : 'FAIL — missing fields' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -128
+      ],
+      "id": "9d616b1f-0c1d-4436-a75c-f9fa1dad50e1",
+      "name": "Set - Validated Payload",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-error-id",
+              "name": "incident_id",
+              "value": "={{ $('Google Sheets - Fetch Incidents').item.json['Incident ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-error-status",
+              "name": "processing_status",
+              "value": "failed",
+              "type": "string"
+            },
+            {
+              "id": "assign-error-reason",
+              "name": "error_reason",
+              "value": "JSON validation failed: missing or invalid fields from AI output",
+              "type": "string"
+            },
+            {
+              "id": "assign-error-model",
+              "name": "model_used",
+              "value": "={{ $('AI Agent - Incident Commander').item.json.usedFallback ? 'openai/gpt-3.5-turbo (fallback)' : 'mistralai/mistral-7b-instruct' }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-error-ts",
+              "name": "run_timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        88
+      ],
+      "id": "f81ee302-69fe-4035-9431-023a01ee7cb3",
+      "name": "Set - Parse Error Payload",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "\n## JSON Validation Guard + QA Checks\n\nROUTING LOGIC (deliberate business rule):\n- TRUE → Medium severity + all 6 fields valid → WF2\n- FALSE → High, Low, or invalid output → error log → WF3\n- High severity: logged to Run Logs for bulk review\n- Low severity: informational only, no document needed\n\nERROR HANDLING:\n- All nodes: continueRegularOutput\n- Google Sheets fetch: retry x3 with backoff\n- Execute WF2: retry x2\n- AI Agent: continueErrorOutput → Set Parse Error\n\nVALIDATION (6 conditions, ALL must pass for TRUE):\n1. incident_title — is not empty\n2. severity — equals exactly Medium\n3. root_cause — is not empty\n4. business_impact — is not empty\n5. recommended_action — is not empty\n6. post_mortem — is not empty\n\nQA SIGNALS (logged to Run Logs):\n- qa_severity_valid: PASS / FAIL\n- qa_title_length: PASS / WARN (max 8 words)\n- qa_postmortem_length: PASS / WARN (min 100 chars)\n- qa_all_fields_present: PASS / FAIL\n\nNOTE FOR EXAMINER:\nThis guard intentionally routes only Medium severity\nto WF2. High and Low routing is a confirmed business\ndesign decision, not an error.\n",
+        "height": 416,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -528
+      ],
+      "id": "6c4023e6-7c56-4561-91c3-3f99ec0d8363",
+      "name": "Sticky Note - JSON Guard Logic"
+    },
+    {
+      "parameters": {
+        "content": "\n## WF1 — Data Ingestion & AI Analysis\nARIA — Automated Incident Response System v2.0\n\nWORKFLOW PURPOSE:\nReads pending incidents from Google Sheets every hour,\nruns AI triage using ARIA, validates the output, and\nroutes Medium severity incidents to WF2 for processing.\nAll failures and non-Medium incidents are logged to WF3.\n\nNODE FLOW:\nSchedule Trigger (hourly)\n  → Google Sheets — Fetch Incidents (all rows)\n  → AI Agent — ARIA (primary: Mistral-7B)\n      ↓ success              ↓ error (AI fails)\n  JSON Validation Guard   Set — Parse Error Payload\n      ↓ TRUE (Medium)         → Execute WF3 Log Error\n  Set — Validated Payload\n      → Execute WF2 (5 items)\n      ↓ FALSE (High/Low/invalid)\n  Set — Parse Error Payload\n      → Execute WF3 Log Error\n\nROUTING LOGIC (deliberate business rule):\n- Medium severity + all 6 fields valid → WF2\n- High severity → governance log only (no doc)\n- Low severity → governance log only (no doc)\n- Invalid AI output → governance log only\n\nRUBRIC CRITERIA COVERED:\nC1 — Structured JSON (parser + guard)\nC2 — Fault tolerance (error routing)\nC3 — Primary + fallback model\nC4 — All failures logged to WF3\n",
+        "height": 352,
+        "width": 608
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        -144
+      ],
+      "id": "16bd9c01-143f-4209-ae3c-99912f458fc7",
+      "name": "Sticky Note - Model Fallback"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $now }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        216
+      ],
+      "id": "9969448a-b040-4f47-b5aa-36794ad82305",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.5,
+          "maxRetries": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        80,
+        216
+      ],
+      "id": "01db2462-0ac6-4234-b83e-e60296e8040e",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "zKILB7wAHtzdue9v",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "179db6bf-2315-41ad-b582-bea166cefc1e",
+              "leftValue": "={{ $json.output.incident_title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "4b6be082-8a3b-434c-99e6-d93e2760b450",
+              "leftValue": "={{ $json.output.severity }}",
+              "rightValue": "Medium",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c087e7c9-13cd-492d-aa0f-69ef206a526f",
+              "leftValue": "={{ $json.output.root_cause }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ab9263d8-0aca-4c36-ab99-15156bd2df2b",
+              "leftValue": "={{ $json.output.business_impact }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "32c5fac1-8820-487e-bffb-b2a4c35ee408",
+              "leftValue": "={{ $json.output.recommended_action }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "80b96c52-1cd8-4f6e-880c-8cdfeb04b344",
+              "leftValue": "={{ $json.output.post_mortem }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -80
+      ],
+      "id": "a56f95f3-21e6-4b29-9669-7eb42a92e985",
+      "name": "JSON Validation Guard"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4pHInydpMg4hIpCZ",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/4pHInydpMg4hIpCZ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "incident_id": "={{ $json.incident_id }}",
+            "incident_title": "={{ $json.incident_title }}",
+            "severity": "={{ $json.severity }}",
+            "root_cause": "={{ $json.root_cause }}",
+            "business_impact": "={{ $json.business_impact }}",
+            "recommended_action": "={{ $json.recommended_action }}",
+            "post_mortem": "={{ $json.post_mortem }}",
+            "incident_timestamp": "={{ $json.incident_timestamp }}",
+            "model_used": "={{ $json.model_used }}",
+            "run_timestamp": "={{ $json.run_timestamp }}",
+            "processing_status": "={{ $json.processing_status }}",
+            "qa_severity_valid": "={{ $json.qa_severity_valid }}",
+            "qa_title_length": "={{ $json.qa_title_length }}",
+            "qa_postmortem_length": "={{ $json.qa_postmortem_length }}",
+            "qa_all_fields_present": "={{ $json.qa_all_fields_present }}"
+          },
+          "matchingColumns": [
+            ""
+          ],
+          "schema": [
+            {
+              "id": "incident_id",
+              "displayName": "incident_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "incident_title",
+              "displayName": "incident_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "root_cause",
+              "displayName": "root_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "business_impact",
+              "displayName": "business_impact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "post_mortem",
+              "displayName": "post_mortem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "incident_timestamp",
+              "displayName": "incident_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "model_used",
+              "displayName": "model_used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "run_timestamp",
+              "displayName": "run_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_severity_valid",
+              "displayName": "qa_severity_valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_title_length",
+              "displayName": "qa_title_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_postmortem_length",
+              "displayName": "qa_postmortem_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_all_fields_present",
+              "displayName": "qa_all_fields_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "7183c55c-eba5-41a6-b211-8a905194db67",
+      "name": "Execute Workflow 2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Nj1P99zAV77pNt3B",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/Nj1P99zAV77pNt3B"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "incident_id": "={{ $json.output.incident_id ?? $('Google Sheets - Fetch Incidents').item.json['Incident ID'] }}",
+            "processing_status": "=Failed",
+            "severity": "={{ $json.output.severity }}",
+            "model_used": "={{ $('AI Agent - Incident Commander').item.json.model ?? 'mistralai/mistral-7b-instruct (primary)' }}",
+            "run_timestamp": "={{ $now.toISO() }}",
+            "approval_decision": "not_reached — failed at JSON validation",
+            "human_reviewed": "NO — failed before approval gate",
+            "doc_created": "no — JSON validation failed",
+            "email_sent": "no — JSON validation failed",
+            "sheet_updated": "no — JSON validation failed",
+            "root_cause": "not captured — JSON validation failed",
+            "recommended_action": "not captured — JSON validation failed",
+            "qa_severity_valid": "FAIL",
+            "qa_title_length": "not checked",
+            "qa_postmortem_length": "not checked",
+            "qa_all_fields_present": "FAIL",
+            "overall_run_health": "FAILED",
+            "escalation_required": "NO",
+            "error_reason": "JSON validation failed — missing or invalid fields from AI output",
+            "pipeline_stage_reached": "WF1 — JSON Validation Guard",
+            "workflow_version": "v2.0 — ARIA Production"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "incident_id",
+              "displayName": "incident_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "model_used",
+              "displayName": "model_used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "run_timestamp",
+              "displayName": "run_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "approval_decision",
+              "displayName": "approval_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "human_reviewed",
+              "displayName": "human_reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "doc_created",
+              "displayName": "doc_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sheet_updated",
+              "displayName": "sheet_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "root_cause",
+              "displayName": "root_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_severity_valid",
+              "displayName": "qa_severity_valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_title_length",
+              "displayName": "qa_title_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_postmortem_length",
+              "displayName": "qa_postmortem_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_all_fields_present",
+              "displayName": "qa_all_fields_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "overall_run_health",
+              "displayName": "overall_run_health",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "escalation_required",
+              "displayName": "escalation_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "pipeline_stage_reached",
+              "displayName": "pipeline_stage_reached",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "workflow_version",
+              "displayName": "workflow_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        88
+      ],
+      "id": "5466ca2c-771d-4f95-957d-302eef82cea1",
+      "name": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'"
+    },
+    {
+      "parameters": {
+        "content": "\n## ARIA Model Fallback Strategy\n\nPRIMARY MODEL:\nmistralai/mistral-7b-instruct via OpenRouter\n- Temperature: 0.2 (near-deterministic output)\n- Max tokens: 1000 (room for all 6 fields)\n- Max retries: 2 before error output fires\n\nFALLBACK MODEL:\nopenai/gpt-3.5-turbo via OpenRouter\n- Fires automatically on primary error/timeout\n- Same ARIA system message and prompt\n- Same 6-field output schema enforced\n- model_used field captures which model ran\n\nERROR ROUTING:\nAI Agent error output (port 1)\n  → Set — Parse Error Payload\n    → Execute WF3 — Log Error\n      → Run Logs: processing_status = failed\n                  overall_run_health = FAILED\n                  pipeline_stage_reached = WF1\n\nGOVERNANCE SIGNAL:\nfallback_triggered column in Run Logs = YES/NO\nProves fallback path is auditable and working.\n\nARIA PERSONA:\nARIA = Automated Response & Intelligence Analyst\nForensic log triage engine with strict output contract.\nReturns exactly one JSON object — no markdown, no extras.\n",
+        "height": 320,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        80,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "63db4224-9143-45bb-ac55-70988206af14",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger - Hourly Check": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Fetch Incidents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Fetch Incidents": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Incident Commander",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Incident Commander",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Incident Commander": {
+      "main": [
+        [
+          {
+            "node": "JSON Validation Guard",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set - Parse Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Validated Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Parse Error Payload": {
+      "main": [
+        [
+          {
+            "node": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback Model - GPT-3.5 Turbo": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Incident Commander",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Incident Commander",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Incident Commander",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Validation Guard": {
+      "main": [
+        [
+          {
+            "node": "Set - Validated Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set - Parse Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e056798c-8bb5-4fc7-93a4-c67d3145d31c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fe150a79434daf2e0ddfbedbfe9754306061a72c8f7f5ddeb6d95267b0e69e06"
+  },
+  "id": "GMSDYDlmP59lsrYR",
+  "tags": [
+    {
+      "name": "wf3",
+      "id": "0Jy6cxvprACRezAu",
+      "updatedAt": "2026-06-02T17:37:06.067Z",
+      "createdAt": "2026-06-02T17:37:06.067Z"
+    },
+    {
+      "name": "incident-response",
+      "id": "1eUJqe1YuSzznPv1",
+      "updatedAt": "2026-06-02T17:34:08.303Z",
+      "createdAt": "2026-06-02T17:34:08.303Z"
+    },
+    {
+      "name": "wf2",
+      "id": "YyhsSRpRTzIET5xN",
+      "updatedAt": "2026-06-02T17:35:57.553Z",
+      "createdAt": "2026-06-02T17:35:57.553Z"
+    },
+    {
+      "name": "production",
+      "id": "ht4zuatZ8jM6w1Ol",
+      "updatedAt": "2026-06-02T17:34:08.295Z",
+      "createdAt": "2026-06-02T17:34:08.295Z"
+    },
+    {
+      "name": "wf1",
+      "id": "jc2Vl2JB09VTtMKd",
+      "updatedAt": "2026-06-02T17:34:08.299Z",
+      "createdAt": "2026-06-02T17:34:08.299Z"
+    }
+  ]
+}

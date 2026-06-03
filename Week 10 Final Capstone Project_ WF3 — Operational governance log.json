@@ -1,0 +1,440 @@
+{
+  "name": "Week 10 Final Capstone Project: WF3 — Operational governance log",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"run_id\": \"{{ 'RUN-' + $now.toFormat('yyyyMMdd-HHmmss') + '-' + $json.incident_id }}\",\n  \"execution_timestamp\": \"{{ $now.toISO() }}\",\n  \"incident_id\": \"{{ $json.incident_id }}\",\n  \"severity\": \"{{ $json.severity }}\",\n  \"model_used\": \"{{ $json.model_used }}\",\n  \"run_timestamp\": \"{{ $json.run_timestamp }}\",\n  \"processing_status\": \"{{ $json.processing_status }}\",\n  \"approval_decision\": \"{{ $json.approval_decision }}\",\n  \"human_reviewed\": \"{{ $json.human_reviewed }}\",\n  \"doc_created\": \"{{ $json.doc_created }}\",\n  \"email_sent\": \"{{ $json.email_sent }}\",\n  \"sheet_updated\": \"{{ $json.sheet_updated }}\",\n  \"root_cause\": \"{{ $json.root_cause }}\",\n  \"recommended_action\": \"{{ $json.recommended_action }}\",\n  \"qa_severity_valid\": \"{{ $json.qa_severity_valid }}\",\n  \"qa_title_length\": \"{{ $json.qa_title_length }}\",\n  \"qa_postmortem_length\": \"{{ $json.qa_postmortem_length }}\",\n  \"qa_all_fields_present\": \"{{ $json.qa_all_fields_present }}\",\n  \"overall_run_health\": \"{{ $json.overall_run_health }}\",\n  \"escalation_required\": \"{{ $json.escalation_required }}\",\n  \"error_reason\": \"{{ $json.error_reason }}\",\n  \"pipeline_stage_reached\": \"{{ $json.pipeline_stage_reached }}\",\n  \"workflow_version\": \"{{ $json.workflow_version }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        368
+      ],
+      "id": "f7de389d-a3a0-452a-9b55-97dc4d2fa85f",
+      "name": "Set - Assemble Run Metadata",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ",
+          "mode": "list",
+          "cachedResultName": "Capstone_Incident_Logs_GoogleSheet test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 588232902,
+          "mode": "list",
+          "cachedResultName": "Run logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit#gid=588232902"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ $json.run_id }}",
+            "execution_timestamp": "={{ $json.execution_timestamp }}",
+            "incident_id": "={{ $json.incident_id }}",
+            "severity": "={{ $json.severity }}",
+            "model_used": "={{ $json.model_used }}",
+            "approval_decision": "={{ $json.approval_decision }}",
+            "human_reviewed": "={{ $json.human_reviewed }}",
+            "processing_status": "={{ $json.processing_status }}",
+            "overall_run_health": "={{ $json.overall_run_health }}",
+            "escalation_required": "={{ $json.escalation_required }}",
+            "doc_created": "={{ $json.doc_created }}",
+            "email_sent": "={{ $json.email_sent }}",
+            "sheet_updated": "={{ $json.sheet_updated }}",
+            "root_cause": "={{ $json.root_cause }}",
+            "recommended_action": "={{ $json.recommended_action }}",
+            "qa_severity_valid": "={{ $json.qa_severity_valid }}",
+            "qa_title_length": "={{ $json.qa_title_length }}",
+            "qa_postmortem_length": "={{ $json.qa_postmortem_length }}",
+            "qa_all_fields_present": "={{ $json.qa_all_fields_present }}",
+            "error_reason": "={{ $json.error_reason }}",
+            "pipeline_stage_reached": "={{ $json.pipeline_stage_reached }}",
+            "workflow_version": "={{ $json.workflow_version }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_timestamp",
+              "displayName": "execution_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "incident_id",
+              "displayName": "incident_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "model_used",
+              "displayName": "model_used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "approval_decision",
+              "displayName": "approval_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "human_reviewed",
+              "displayName": "human_reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "overall_run_health",
+              "displayName": "overall_run_health",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "escalation_required",
+              "displayName": "escalation_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "doc_created",
+              "displayName": "doc_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sheet_updated",
+              "displayName": "sheet_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "root_cause",
+              "displayName": "root_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "qa_severity_valid",
+              "displayName": "qa_severity_valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qa_title_length",
+              "displayName": "qa_title_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qa_postmortem_length",
+              "displayName": "qa_postmortem_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qa_all_fields_present",
+              "displayName": "qa_all_fields_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pipeline_stage_reached",
+              "displayName": "pipeline_stage_reached",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow_version",
+              "displayName": "workflow_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        368
+      ],
+      "id": "6bbfbe69-2a12-45f4-a8af-cfb5382fbcea",
+      "name": "Google Sheets - Write Run Logs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TeTxzgKa8FiATXyA",
+          "name": "Google Sheets account 4"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": " WF3 OVERVIEW \n## WF3 — Operational Logging & Governance\nARIA — Automated Incident Response System v2.0\n\nWORKFLOW PURPOSE:\nReceives run metadata from WF1 (on error) or WF2\n(on success or rejection). Assembles a complete\ngovernance record and writes one row to Run Logs tab.\n\nNODE FLOW:\nWhen Executed by Another Workflow (from WF1 or WF2)\n  → Set — Assemble Run Metadata (23 fields)\n  → Google Sheets — Write Run Logs (append)\n\nTHREE ENTRY SCENARIOS:\n1. WF1 Log Error → processing_status = failed\n   pipeline_stage_reached = WF1 — AI Agent error\n   overall_run_health = FAILED\n\n2. WF2 Log Rejection → processing_status = pending_review\n   pipeline_stage_reached = WF3 — Governance Log\n   overall_run_health = PENDING REVIEW\n\n3. WF2 Log Success → processing_status = success\n   pipeline_stage_reached = WF3 — Governance Log\n   overall_run_health = HEALTHY\n\nANSWERS: What happened last Friday?\nOne row per execution tells the full story.\n\nRUBRIC CRITERIA COVERED:\nC4 — Full operational governance log\nC2 — Always runs regardless of WF1/WF2 outcome",
+        "height": 320,
+        "width": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        272
+      ],
+      "id": "465d5cf2-7801-4fb8-ae96-6eb849c8fc0b",
+      "name": "Sticky Note - Governance Log Schema"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "incident_id"
+            },
+            {
+              "name": "severity"
+            },
+            {
+              "name": "model_used"
+            },
+            {
+              "name": "run_timestamp"
+            },
+            {
+              "name": "processing_status"
+            },
+            {
+              "name": "approval_decision"
+            },
+            {
+              "name": "approval_decision"
+            },
+            {
+              "name": "human_reviewed"
+            },
+            {
+              "name": "doc_created"
+            },
+            {
+              "name": "email_sent"
+            },
+            {
+              "name": "sheet_updated"
+            },
+            {
+              "name": "root_cause"
+            },
+            {
+              "name": "recommended_action"
+            },
+            {
+              "name": "qa_severity_valid"
+            },
+            {
+              "name": "qa_title_length"
+            },
+            {
+              "name": "qa_postmortem_length"
+            },
+            {
+              "name": "qa_all_fields_present"
+            },
+            {
+              "name": "overall_run_health"
+            },
+            {
+              "name": "escalation_required"
+            },
+            {
+              "name": "error_reason"
+            },
+            {
+              "name": "pipeline_stage_reached"
+            },
+            {
+              "name": "workflow_version"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        368
+      ],
+      "id": "515f4e10-677f-4009-802f-0917398dcd28",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "content": " RUN LOGS SCHEMA \n## Run Logs Tab \n\nIDENTITY (2):\nrun_id | execution_timestamp\n\nINCIDENT (2):\nincident_id | severity\n\nMODEL GOVERNANCE (1):\nmodel_used\n\nHUMAN GOVERNANCE (2):\napproval_decision | human_reviewed\n\nOUTCOME (3):\nprocessing_status | overall_run_health | escalation_required\n\nSTEP AUDIT (3):\ndoc_created | email_sent | sheet_updated\n\nARIA SNAPSHOT (2):\nroot_cause | recommended_action\n\nQA SIGNALS (4):\nqa_severity_valid | qa_title_length\nqa_postmortem_length | qa_all_fields_present\n\nERROR (1):\nerror_reason\n\nSYSTEM (3):\npipeline_stage_reached | workflow_version | run_timestamp\n\nHEALTH VALUES:\nHEALTHY       — success, doc created\nPENDING REVIEW — human did not approve\nFAILED        — AI agent error or JSON invalid\n\nAPPROVAL VALUES:\napproved\nrejected_by_reviewer\nauto_rejected_timeout\nnot_reached — failed before approval gate\n",
+        "height": 336,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "35e82afe-88c8-404c-b880-27791bbe920f",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set - Assemble Run Metadata": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Write Run Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set - Assemble Run Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "a88262c9-f1a3-401a-9c24-e3f9905e47c5",
+  "meta": {
+    "instanceId": "fe150a79434daf2e0ddfbedbfe9754306061a72c8f7f5ddeb6d95267b0e69e06"
+  },
+  "id": "Nj1P99zAV77pNt3B",
+  "tags": []
+}

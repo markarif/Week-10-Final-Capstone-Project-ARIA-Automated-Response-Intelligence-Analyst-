@@ -1,0 +1,1111 @@
+{
+  "name": "Week 10 Final Capstone Project: WF2 — Error handling & fault tolerance",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ",
+          "mode": "list",
+          "cachedResultName": "Capstone_Incident_Logs_GoogleSheet test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1813328768,
+          "mode": "list",
+          "cachedResultName": "Incident Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14SwV2f7Q5eWhBilmD8JBNIhzCJs0qJBbgRwLiI3_IUQ/edit#gid=1813328768"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Incident ID": "={{ $('When Executed by Another Workflow').item.json.incident_id }}",
+            "Report Status": "=Processed",
+            "Google Doc Link": "={{ $('Google Docs - Create Report Document').item.json.id }}",
+            "Severity": "={{ $('When Executed by Another Workflow').item.json.severity }}",
+            "Root Cause": "={{ $('When Executed by Another Workflow').item.json.root_cause }}",
+            "Recommended Action": "={{ $('When Executed by Another Workflow').item.json.recommended_action }}",
+            "Model Used": "={{ $('When Executed by Another Workflow').item.json.model_used }}",
+            "Processed At": "={{ $('When Executed by Another Workflow').item.json.run_timestamp }}"
+          },
+          "matchingColumns": [
+            "Incident ID"
+          ],
+          "schema": [
+            {
+              "id": "Incident ID",
+              "displayName": "Incident ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Raw Logs",
+              "displayName": "Raw Logs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Report Status",
+              "displayName": "Report Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Google Doc Link",
+              "displayName": "Google Doc Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Severity",
+              "displayName": "Severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Root Cause",
+              "displayName": "Root Cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recommended Action",
+              "displayName": "Recommended Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Model Used",
+              "displayName": "Model Used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Processed At",
+              "displayName": "Processed At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        -112
+      ],
+      "id": "52cd76d1-bd46-4180-bdc1-81ac31ee92e3",
+      "name": "Google Sheets - Mark as Processed",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TeTxzgKa8FiATXyA",
+          "name": "Google Sheets account 4"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "WF2 OVERVIEW -\n## WF2 — Doc Creation & Escalation Routing\nARIA — Automated Incident Response System v2.0\n\nWORKFLOW PURPOSE:\nReceives validated Medium severity incidents from WF1.\nSends a human approval email and waits up to 30 minutes.\nOn approval: creates Google Doc, sends CTO alert (High only),\nupdates Sheets. On rejection/timeout: logs to WF3 only.\n\nNODE FLOW:\nWhen Executed by Another Workflow (from WF1)\n  → Gmail — Send Approval Request\n  → Wait — Approval Response (30 min)\n  → IF — Approved or Rejected?\n      ↓ TRUE (approved)        ↓ FALSE (rejected/timeout)\n  Google Docs — Create Report  Set — Rejection Payload\n  → Gmail — Medium Alert       → Execute WF3 Log Rejection\n  → Sheets — Mark Processed\n  → Execute WF3 Log Success\n\nDATA REFERENCE AFTER WAIT NODE:\nAll nodes after Wait must use:\n$('When Executed by Another Workflow').item.json.fieldname\nNOT $json.fieldname (Wait node resets $json context)\n\nRUBRIC CRITERIA COVERED:\nC1 — Structured doc from validated JSON\nC2 — continue-on-error on all nodes\nC4 — Both paths log to WF3\n\n--- STICKY 5: HUMAN APPROVAL GATE (place over Wait + IF nodes) ---\n## Human Approval Gate\n\nPOSITIONED BEFORE: Google Doc creation\nNo external action happens without human sign-off.\n\nAPPROVAL EMAIL CONTAINS:\n- Incident ID, title, severity, timestamp\n- Root cause (orange card)\n- Business impact (blue card)\n- Recommended action (green card)\n- ARIA post-mortem analysis\n- Approve and Reject buttons (n8n built-in)\n\nIF NODE CONDITION:\n$json.data.approved is true → TRUE branch\nAnything else → FALSE branch\n\nAPPROVED PATH:\n→ Google Doc created\n→ Gmail alert (Medium severity)\n→ Sheets row updated to Processed\n→ WF3 logs: processing_status = success\n             overall_run_health = HEALTHY\n\nREJECTED / TIMEOUT PATH:\n→ No document created\n→ No email sent\n→ Incident stays Pending in sheet\n→ WF3 logs: processing_status = pending_review\n             overall_run_health = PENDING REVIEW\n\nCOMMERCIAL RATIONALE:\nAI-generated reports must not fire without human\nsign-off. Auto-reject on timeout is the safe default —\nmissed email = manual triage, not silent processing.",
+        "height": 496,
+        "width": 576
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        -192
+      ],
+      "id": "d752605b-1e3b-4f28-9ae8-d8d1a750e384",
+      "name": "Sticky Note - Escalation & Fault Tolerance"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "Markmuinde78@gmail.com",
+        "subject": "=[ARIA] Action required — review incident {{ $json.incident_id }}: {{ $json.incident_title }}",
+        "message": "=<div style=\"font-family:Arial,sans-serif;max-width:680px;margin:0 auto;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden\">\n\n<div style=\"background:#1E3A5F;color:white;padding:20px 28px\">\n  <h2 style=\"margin:0;font-size:17px;font-weight:600\">ARIA — Human Review Required</h2>\n  <p style=\"margin:6px 0 0;font-size:12px;opacity:0.75\">Automated Response & Intelligence Analyst v2.0</p>\n</div>\n\n<div style=\"padding:24px 28px;background:#F9FAFB\">\n  <p style=\"margin:0 0 16px;font-size:14px;color:#374151\">\n    ARIA has completed its analysis of the following incident. Your approval is required before a Google Doc report is created.\n    <strong>This request expires in 30 minutes.</strong> No action = auto-rejected and logged.\n  </p>\n\n  <table style=\"width:100%;border-collapse:collapse;margin-bottom:20px;background:white;border-radius:8px;overflow:hidden;border:1px solid #E5E7EB\">\n    <tr style=\"background:#F3F4F6\">\n      <td style=\"padding:10px 14px;font-weight:600;font-size:13px;color:#111827;width:170px\">Incident ID</td>\n      <td style=\"padding:10px 14px;font-size:13px;color:#374151\">{{ $json.incident_id }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding:10px 14px;font-weight:600;font-size:13px;color:#111827\">Incident title</td>\n      <td style=\"padding:10px 14px;font-size:13px;color:#374151\">{{ $json.incident_title }}</td>\n    </tr>\n    <tr style=\"background:#F3F4F6\">\n      <td style=\"padding:10px 14px;font-weight:600;font-size:13px;color:#111827\">Severity</td>\n      <td style=\"padding:10px 14px;font-size:13px;font-weight:700;color:{{ $json.severity === 'High' ? '#B91C1C' : $json.severity === 'Medium' ? '#B45309' : '#166534' }}\">{{ $json.severity }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding:10px 14px;font-weight:600;font-size:13px;color:#111827\">Queue timestamp</td>\n      <td style=\"padding:10px 14px;font-size:13px;color:#374151\">{{ $json.incident_timestamp }}</td>\n    </tr>\n    <tr style=\"background:#F3F4F6\">\n      <td style=\"padding:10px 14px;font-weight:600;font-size:13px;color:#111827\">Analysis model</td>\n      <td style=\"padding:10px 14px;font-size:13px;color:#374151\">{{ $json.model_used }}</td>\n    </tr>\n  </table>\n\n  <div style=\"background:#FFF7ED;border-left:4px solid #F97316;padding:14px 18px;margin-bottom:14px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 6px;font-size:13px;color:#C2410C;font-weight:600\">Root cause</h3>\n    <p style=\"margin:0;font-size:13px;color:#1F2937;line-height:1.5\">{{ $json.root_cause }}</p>\n  </div>\n\n  <div style=\"background:#EFF6FF;border-left:4px solid #3B82F6;padding:14px 18px;margin-bottom:14px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 6px;font-size:13px;color:#1D4ED8;font-weight:600\">Business impact</h3>\n    <p style=\"margin:0;font-size:13px;color:#1F2937;line-height:1.5\">{{ $json.business_impact }}</p>\n  </div>\n\n  <div style=\"background:#F0FDF4;border-left:4px solid #22C55E;padding:14px 18px;margin-bottom:20px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 6px;font-size:13px;color:#15803D;font-weight:600\">Recommended immediate action</h3>\n    <p style=\"margin:0;font-size:13px;color:#1F2937;line-height:1.5\">{{ $json.recommended_action }}</p>\n  </div>\n\n  <div style=\"background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:14px 18px;margin-bottom:28px\">\n    <h3 style=\"margin:0 0 6px;font-size:13px;color:#374151;font-weight:600\">ARIA post-mortem</h3>\n    <p style=\"margin:0;font-size:13px;color:#4B5563;line-height:1.6\">{{ $json.post_mortem }}</p>\n  </div>\n\n  <p style=\"margin:20px 0 0;font-size:11px;color:#9CA3AF;text-align:center\">\n    This request expires in <strong>30 minutes</strong>. No response = auto-rejected and logged as pending review.<br>\n    ARIA — Automated Incident Response System v2.0 | Do not forward this email — links are single-use.\n  </p>\n</div>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -16
+      ],
+      "id": "3f88299d-199e-453b-aba4-d7d332a70a10",
+      "name": "Gmail - Send Approval Request",
+      "webhookId": "03099b16-89bf-459b-862e-517bf17384d3",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jx21msO9A4kXTldt",
+          "name": "Gmail account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "check-approved",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -16
+      ],
+      "id": "269f9312-2f21-4a27-b624-1d025630d55d",
+      "name": "IF - Approved or Rejected?",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "incident_id",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.incident_id }}",
+              "type": "string"
+            },
+            {
+              "id": "r2",
+              "name": "severity",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "r3",
+              "name": "model_used",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.model_used }}",
+              "type": "string"
+            },
+            {
+              "id": "r4",
+              "name": "run_timestamp",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.run_timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "r5",
+              "name": "processing_status",
+              "value": "pending_review",
+              "type": "string"
+            },
+            {
+              "id": "r6",
+              "name": "approval_decision",
+              "value": "={{ $json.query.decision === 'rejected' ? 'rejected_by_reviewer' : 'auto_rejected_timeout' }}",
+              "type": "string"
+            },
+            {
+              "id": "r7",
+              "name": "doc_created",
+              "value": "no — pending human review",
+              "type": "string"
+            },
+            {
+              "id": "r8",
+              "name": "email_sent",
+              "value": "no — pending human review",
+              "type": "string"
+            },
+            {
+              "id": "r9",
+              "name": "sheet_updated",
+              "value": "no — pending human review",
+              "type": "string"
+            },
+            {
+              "id": "r10",
+              "name": "error_reason",
+              "value": "Human reviewer did not approve. Incident queued for manual triage.",
+              "type": "string"
+            },
+            {
+              "id": "r11",
+              "name": "root_cause",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.root_cause }}",
+              "type": "string"
+            },
+            {
+              "id": "r12",
+              "name": "recommended_action",
+              "value": "={{ $('Webhook - Entry from WF1').item.json.body.recommended_action }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        80
+      ],
+      "id": "d9012161-8280-4693-ae8e-da428c5ec2f4",
+      "name": "Set - Rejection Payload",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "ESCALATION & FAULT TOLERANCE---\n## Escalation & Fault Tolerance\n\nSEVERITY ROUTING (inside WF2):\n- Medium severity → Google Doc + team email\n- High severity → this workflow not reached\n  (High routed to error log in WF1 by design)\n\nCONTINUE-ON-ERROR (all nodes):\n- Google Docs fails → Gmail + Sheets still run\n- Gmail fails → Sheets still updates\n- Sheets fails → WF3 still logs\n- Execute WF3 fails → continueRegularOutput\n\nGMAIL — MEDIUM SEVERITY ALERT:\nFires for all incidents reaching this point.\nSubject references: When Executed by Another Workflow\nAll expressions use:\n$('When Executed by Another Workflow').item.json.field\n\nGOOGLE DOCS LINK IN SHEETS:\n='https://docs.google.com/document/d/'\n+ $('Google Docs - Create & Write Report').item.json.id\n+ '/edit'\n\nWF3 IS ALWAYS CALLED:\nBoth approved and rejected paths end with\nan Execute Workflow call to WF3.\nEvery execution is auditable — nothing is lost.\n",
+        "height": 384,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -544
+      ],
+      "id": "165e9e13-3a40-4193-a435-a8b29059d17b",
+      "name": "Sticky Note - Human Approval Gate"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "incident_id"
+            },
+            {
+              "name": "incident_title"
+            },
+            {
+              "name": "severity"
+            },
+            {
+              "name": "root_cause"
+            },
+            {
+              "name": "business_impact"
+            },
+            {
+              "name": "recommended_action"
+            },
+            {
+              "name": "post_mortem"
+            },
+            {
+              "name": "incident_timestamp"
+            },
+            {
+              "name": "model_used"
+            },
+            {
+              "name": "run_timestamp"
+            },
+            {
+              "name": "processing_status"
+            },
+            {
+              "name": "qa_severity_valid"
+            },
+            {
+              "name": "qa_title_length"
+            },
+            {
+              "name": "qa_postmortem_length"
+            },
+            {
+              "name": "qa_all_fields_present"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        -16
+      ],
+      "id": "50e853a8-e933-4bc2-a7d1-408e99712a64",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "Markmuinde78@gmail.com",
+        "subject": "={{ $('When Executed by Another Workflow').item.json.severity === 'High' ? '🚨 HIGH SEVERITY INCIDENT — ' + $('When Executed by Another Workflow').item.json.incident_title + ' [ARIA Alert]' : '[ARIA] Incident processed — ' + $('When Executed by Another Workflow').item.json.incident_title }}",
+        "message": "=\n<div style=\"font-family:Arial,sans-serif;max-width:680px;margin:0 auto\">\n<div style=\"background:#B91C1C;color:white;padding:16px 24px;border-radius:8px 8px 0 0\">\n  <h2 style=\"margin:0;font-size:18px\">🚨 ARIA Severity Incident Alert</h2>\n  <p style=\"margin:4px 0 0;font-size:13px;opacity:0.85\">Automated Response & Intelligence Analyst </p>\n</div>\n<div style=\"border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px;padding:24px\">\n  <table style=\"width:100%;border-collapse:collapse;margin-bottom:24px\">\n    <tr style=\"background:#FEF2F2\">\n      <td style=\"padding:10px 14px;border:1px solid #FECACA;font-weight:bold;width:180px\">Incident ID</td>\n      <td style=\"padding:10px 14px;border:1px solid #FECACA\">{{ $('When Executed by Another Workflow').item.json.incident_id }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB;font-weight:bold\">Incident Title</td>\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB\">{{ $('When Executed by Another Workflow').item.json.incident_title }}</td>\n    </tr>\n    <tr style=\"background:#FEF2F2\">\n      <td style=\"padding:10px 14px;border:1px solid #FECACA;font-weight:bold\">Severity</td>\n      <td style=\"padding:10px 14px;border:1px solid #FECACA;color:#B91C1C;font-weight:bold\">🔴 {{ $('When Executed by Another Workflow').item.json.severity }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB;font-weight:bold\">Queue Timestamp</td>\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB\">{{ $('When Executed by Another Workflow').item.json.incident_timestamp }}</td>\n    </tr>\n    <tr style=\"background:#F9FAFB\">\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB;font-weight:bold\">Analysis Model</td>\n      <td style=\"padding:10px 14px;border:1px solid #E5E7EB\">{{ $('When Executed by Another Workflow').item.json.model_used }}</td>\n    </tr>\n  </table>\n  <div style=\"background:#FFF7ED;border-left:4px solid #F97316;padding:14px 18px;margin-bottom:16px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 8px;font-size:14px;color:#C2410C\">Root Cause</h3>\n    <p style=\"margin:0;font-size:14px;color:#1F2937\">{{ $('When Executed by Another Workflow').item.json.root_cause }}</p>\n  </div>\n  <div style=\"background:#EFF6FF;border-left:4px solid #3B82F6;padding:14px 18px;margin-bottom:16px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 8px;font-size:14px;color:#1D4ED8\">Business Impact</h3>\n    <p style=\"margin:0;font-size:14px;color:#1F2937\">{{ $('When Executed by Another Workflow').item.json.business_impact }}</p>\n  </div>\n  <div style=\"background:#F0FDF4;border-left:4px solid #22C55E;padding:14px 18px;margin-bottom:24px;border-radius:0 6px 6px 0\">\n    <h3 style=\"margin:0 0 8px;font-size:14px;color:#15803D\">Recommended Immediate Action</h3>\n    <p style=\"margin:0;font-size:14px;color:#1F2937\">{{ $('When Executed by Another Workflow').item.json.recommended_action }}</p>\n  </div>\n  <div style=\"background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:14px 18px;margin-bottom:24px\">\n    <h3 style=\"margin:0 0 8px;font-size:14px;color:#374151\">Full Post-Mortem</h3>\n    <p style=\"margin:0;font-size:14px;color:#4B5563;line-height:1.6\">{{ $('When Executed by Another Workflow').item.json.post_mortem }}</p>\n  </div>\n  <div style=\"text-align:center;margin-bottom:8px\">\n    <a href=\"https://docs.google.com/document/d/{{ $('Google Docs - Create Report Document').item.json.id }}/edit\"\n       style=\"background:#1D4ED8;color:white;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:bold;display:inline-block\">\n      📄 View Full ARIA Report in Google Docs\n    </a>\n  </div>\n  <p style=\"text-align:center;font-size:11px;color:#9CA3AF;margin-top:16px\">\n    Generated by ARIA — Automated Response & Intelligence Analyst v2.0<br>\n    Automated Incident Response System | Run Logs tab contains full audit trail\n  </p>\n</div>\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        -112
+      ],
+      "id": "1f71846c-1385-409b-9c00-370678abefe5",
+      "name": "Gmail - Medium Severity Alert",
+      "webhookId": "77258ac0-a45e-4a24-b91c-f01b884c1caa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jx21msO9A4kXTldt",
+          "name": "Gmail account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "folderId": "1v39RQscw-JgTk0vP5Rjobg7aEBPHQCGx",
+        "title": "={{ $('When Executed by Another Workflow').item.json.incident_title }} — {{ $('When Executed by Another Workflow').item.json.incident_id }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -112
+      ],
+      "id": "2e391d5b-d41b-4a28-98e5-413fa27bce2e",
+      "name": "Google Docs - Create Report Document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "33jvdGN1WWKEWxv2",
+          "name": "Google Docs account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "=POST-MORTEM REPORT — AUTOMATED RESPONSE & INTELLIGENCE ANALYST (ARIA)\n\nINCIDENT METADATA \nIncident ID       : {{ $('When Executed by Another Workflow').item.json.incident_id }}\nIncident Title    : {{ $('When Executed by Another Workflow').item.json.incident_title }} \nSeverity Level    : {{ $('When Executed by Another Workflow').item.json.severity }} \nQueue Timestamp   : {{ $('When Executed by Another Workflow').item.json.incident_timestamp }} \nProcessed At      : {{ $('When Executed by Another Workflow').item.json.run_timestamp }} \nAnalysis Engine   : ARIA v2.0\nModel Used        : {{ $('When Executed by Another Workflow').item.json.model_used }}  \n\nROOT CAUSE ANALYSIS \n{{ $('When Executed by Another Workflow').item.json.root_cause }}  \n\nBUSINESS IMPACT ASSESSMENT \n{{ $('When Executed by Another Workflow').item.json.business_impact }}  \n\nRECOMMENDED IMMEDIATE ACTION \n{{ $('When Executed by Another Workflow').item.json.recommended_action }}  \n\nFULL POST-MORTEM REPORT \n{{ $('When Executed by Another Workflow').item.json.post_mortem }}  \n\n\nGOVERNANCE TRAIL \nThis report was generated automatically by the Automated Incident Response System (ARIA) v2.0. It has been reviewed by a human approver and passed a 6-field JSON schema validation before reaching this document.\n\nWorkflow Version  : WF2 - Doc Creation & Escalation Routing\nPipeline          : WF1 → WF2 → WF3 (Operational Logs) \nAudit Log Tab     : Run Logs (same Google Sheet as Incident Logs)\nApproval Status   : Approved by human reviewer \n\nThis document is part of an auditable incident governance trail."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -112
+      ],
+      "id": "51af6bf0-eefa-4f3d-b9ca-bb80c10580d9",
+      "name": "Google Docs - Write Report",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "33jvdGN1WWKEWxv2",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Nj1P99zAV77pNt3B",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/Nj1P99zAV77pNt3B"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "incident_id": "={{ $('When Executed by Another Workflow').item.json.incident_id }}",
+            "severity": "={{ $('When Executed by Another Workflow').item.json.severity }}",
+            "model_used": "={{ $('When Executed by Another Workflow').item.json.model_used }}",
+            "run_timestamp": "={{ $('When Executed by Another Workflow').item.json.run_timestamp }}",
+            "processing_status": "success",
+            "approval_decision": "approved",
+            "human_reviewed": "=YES — approved by reviewer",
+            "doc_created": "={{ $('Google Docs - Create Report Document').item.json.id }}",
+            "email_sent": "={{ $('When Executed by Another Workflow').item.json.severity === 'High' ? 'yes — CTO alerted' : 'skipped — severity not High' }}",
+            "sheet_updated": "=yes",
+            "root_cause": "={{ $('When Executed by Another Workflow').item.json.root_cause }}",
+            "recommended_action": "={{ $('When Executed by Another Workflow').item.json.recommended_action }}",
+            "qa_severity_valid": "={{ $('When Executed by Another Workflow').item.json.qa_severity_valid }}",
+            "qa_title_length": "={{ $('When Executed by Another Workflow').item.json.qa_title_length }}",
+            "qa_postmortem_length": "={{ $('When Executed by Another Workflow').item.json.qa_postmortem_length }}",
+            "qa_all_fields_present": "={{ $('When Executed by Another Workflow').item.json.qa_all_fields_present }}",
+            "overall_run_health": "=Healthy",
+            "escalation_required": "={{ $('When Executed by Another Workflow').item.json.severity === 'High' ? 'YES — CTO alerted' : 'NO' }}",
+            "error_reason": "=None",
+            "pipeline_stage_reached": "=WF3 — Governance Log",
+            "workflow_version": "=v2.0 — ARIA Production"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "incident_id",
+              "displayName": "incident_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "model_used",
+              "displayName": "model_used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "run_timestamp",
+              "displayName": "run_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approval_decision",
+              "displayName": "approval_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "human_reviewed",
+              "displayName": "human_reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "doc_created",
+              "displayName": "doc_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sheet_updated",
+              "displayName": "sheet_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "root_cause",
+              "displayName": "root_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_severity_valid",
+              "displayName": "qa_severity_valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_title_length",
+              "displayName": "qa_title_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_postmortem_length",
+              "displayName": "qa_postmortem_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_all_fields_present",
+              "displayName": "qa_all_fields_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "overall_run_health",
+              "displayName": "overall_run_health",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "escalation_required",
+              "displayName": "escalation_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "pipeline_stage_reached",
+              "displayName": "pipeline_stage_reached",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "workflow_version",
+              "displayName": "workflow_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        -112
+      ],
+      "id": "fe30b89f-975d-4411-9ac8-397af9928953",
+      "name": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'-Log success"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Nj1P99zAV77pNt3B",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/Nj1P99zAV77pNt3B"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "incident_id": "={{ $('When Executed by Another Workflow').item.json.incident_id }}",
+            "severity": "={{ $('When Executed by Another Workflow').item.json.severity }}",
+            "model_used": "={{ $('When Executed by Another Workflow').item.json.model_used }}",
+            "run_timestamp": "={{ $('When Executed by Another Workflow').item.json.run_timestamp }}",
+            "processing_status": "Pending Review",
+            "approval_decision": "={{ $json.approval_decision ?? 'auto_rejected_timeout' }}",
+            "human_reviewed": "NO — pending manual triage",
+            "doc_created": "no — pending human review",
+            "email_sent": "no — pending human review",
+            "sheet_updated": "no — pending human review",
+            "root_cause": "={{ $('When Executed by Another Workflow').item.json.root_cause }}",
+            "recommended_action": "={{ $('When Executed by Another Workflow').item.json.recommended_action }}",
+            "qa_severity_valid": "={{ $('When Executed by Another Workflow').item.json.qa_severity_valid }}",
+            "qa_title_length": "={{ $('When Executed by Another Workflow').item.json.qa_title_length }}",
+            "qa_postmortem_length": "={{ $('When Executed by Another Workflow').item.json.qa_postmortem_length }}",
+            "qa_all_fields_present": "={{ $('When Executed by Another Workflow').item.json.qa_all_fields_present }}",
+            "overall_run_health": "PENDING REVIEW",
+            "escalation_required": "NO",
+            "error_reason": "Human reviewer did not approve — incident queued for manual triage",
+            "pipeline_stage_reached": "WF3 — Governance Log",
+            "workflow_version": "v2.0 — ARIA Production"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "incident_id",
+              "displayName": "incident_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "model_used",
+              "displayName": "model_used",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "run_timestamp",
+              "displayName": "run_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "processing_status",
+              "displayName": "processing_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approval_decision",
+              "displayName": "approval_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "human_reviewed",
+              "displayName": "human_reviewed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "doc_created",
+              "displayName": "doc_created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sheet_updated",
+              "displayName": "sheet_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "root_cause",
+              "displayName": "root_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recommended_action",
+              "displayName": "recommended_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_severity_valid",
+              "displayName": "qa_severity_valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_title_length",
+              "displayName": "qa_title_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_postmortem_length",
+              "displayName": "qa_postmortem_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_all_fields_present",
+              "displayName": "qa_all_fields_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "overall_run_health",
+              "displayName": "overall_run_health",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "escalation_required",
+              "displayName": "escalation_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "error_reason",
+              "displayName": "error_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "pipeline_stage_reached",
+              "displayName": "pipeline_stage_reached",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "workflow_version",
+              "displayName": "workflow_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        80
+      ],
+      "id": "5cfba344-6879-46ba-ac70-4bf14af994fa",
+      "name": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'-Log Rejected"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets - Mark as Processed": {
+      "main": [
+        [
+          {
+            "node": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'-Log success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Approval Request": {
+      "main": [
+        [
+          {
+            "node": "IF - Approved or Rejected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Approved or Rejected?": {
+      "main": [
+        [
+          {
+            "node": "Google Docs - Create Report Document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set - Rejection Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Rejection Payload": {
+      "main": [
+        [
+          {
+            "node": "Call 'Week 10 Final Capstone Project: WF3 — Operational governance log'-Log Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Medium Severity Alert": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Mark as Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs - Create Report Document": {
+      "main": [
+        [
+          {
+            "node": "Google Docs - Write Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs - Write Report": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Medium Severity Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8aaebf58-64ec-4b32-bd19-f83bb02842aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fe150a79434daf2e0ddfbedbfe9754306061a72c8f7f5ddeb6d95267b0e69e06"
+  },
+  "id": "4pHInydpMg4hIpCZ",
+  "tags": []
+}
