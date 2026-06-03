@@ -1,0 +1,51 @@
+POST-MORTEM REPORT — AUTOMATED RESPONSE & INTELLIGENCE ANALYST (ARIA)
+================================================================================
+
+INCIDENT METADATA
+-----------------
+Incident ID       : {{ $('When Executed by Another Workflow').item.json.incident_id }}
+Incident Title    : {{ $('When Executed by Another Workflow').item.json.incident_title }}
+Severity Level    : {{ $('When Executed by Another Workflow').item.json.severity }}
+Queue Timestamp   : {{ $('When Executed by Another Workflow').item.json.incident_timestamp }}
+Processed At      : {{ $('When Executed by Another Workflow').item.json.run_timestamp }}
+Analysis Engine   : ARIA v2.0
+Model Used        : {{ $('When Executed by Another Workflow').item.json.model_used }}
+
+================================================================================
+
+ROOT CAUSE ANALYSIS
+-------------------
+{{ $('When Executed by Another Workflow').item.json.root_cause }}
+
+================================================================================
+
+BUSINESS IMPACT ASSESSMENT
+---------------------------
+{{ $('When Executed by Another Workflow').item.json.business_impact }}
+
+================================================================================
+
+RECOMMENDED IMMEDIATE ACTION
+-----------------------------
+{{ $('When Executed by Another Workflow').item.json.recommended_action }}
+
+================================================================================
+
+FULL POST-MORTEM REPORT
+------------------------
+{{ $('When Executed by Another Workflow').item.json.post_mortem }}
+
+================================================================================
+
+GOVERNANCE TRAIL
+----------------
+This report was generated automatically by the Automated Incident Response
+System (ARIA) v2.0. It has been reviewed by a human approver and passed a
+6-field JSON schema validation before reaching this document.
+
+Workflow Version  : WF2 - Doc Creation & Escalation Routing
+Pipeline          : WF1 → WF2 → WF3 (Operational Logs)
+Audit Log Tab     : Run Logs (same Google Sheet as Incident Logs)
+Approval Status   : Approved by human reviewer
+
+This document is part of an auditable incident governance trail.
