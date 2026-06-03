@@ -1,5 +1,5 @@
 # ARIA — Automated Response & Intelligence Analyst
-### Automated Incident Response System v2.0 | Week 10 Final Capstone | Nairobi Nexus | 2026
+
 
 > "Anyone can automate a happy path. This system is designed for failure, uncertainty, and scale."
 
