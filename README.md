@@ -18,7 +18,7 @@ Think of ARIA as a tireless digital assistant that reads every system incident, 
 | Name | Role |
 |---|---|
 | Mark Muinde | Lead Developer — System Architecture & AI Configuration |
-| Paul Murithi | Co-Developer — Workflow Design & Governance Implementation |
+| Paul Murithi | Co-Developer — Workflow Design, Project Documentation & Governance Implementation |
 
 **System:** ARIA — Automated Response & Intelligence Analyst
 **Course:** AI Automation — Week 10 Final Capstone
@@ -70,15 +70,6 @@ Receives the validated incident data from Workflow 1. Sends an approval email to
 The audit engine. Receives data from both Workflow 1 and Workflow 2. Records every execution — success, failure, or rejection — as a detailed row in the Run Logs tab. 23 columns of operational data written automatically every single run.
 
 ---
-
-## Rubric Coverage
-
-| Criterion | Score | How ARIA achieves it |
-|---|---|---|
-| C1 — Structured AI Output & JSON Reliability | 10/10 | 3-layer validation: ARIA prompt discipline + LangChain schema parser + 6-condition JSON guard |
-| C2 — Fault Tolerance & Resilient Design | 10/10 | 7 error handling techniques, 19 nodes with continue-on-error, branch isolation |
-| C3 — Model Selection, Constraints & Fallbacks | 10/10 | Mistral-7B primary → GPT-3.5-turbo fallback, model_used logged every run |
-| C4 — Operational Logging & Governance Signals | 10/10 | 23-column Run Logs tab, 3 entry points to Workflow 3, HEALTHY/FAILED/PENDING signals |
 
 ---
 
@@ -288,6 +279,7 @@ In n8n, click the **Settings** icon (bottom left) → click **Credentials** → 
 - Back in n8n — click **Add credential**
 - Search for `OpenRouter`
 - Paste your API key → save — name it `OpenRouter account`
+- Note: OpenRouter is used for the fallback model only (openai/gpt-4.1-mini). The primary model (mistral-large-latest) uses a separate Mistral Cloud account
 
 ---
 
@@ -362,10 +354,10 @@ escalation_required, error_reason, pipeline_stage_reached, workflow_version
    - Set Sheet to `ARIA_Incident_Logs` and Tab to `Incident Logs`
 3. Click the **Primary Model — Mistral 7B** node
    - Connect the `OpenRouter account` credential
-   - Model: `mistralai/mistral-7b-instruct`
+   - Model: `mistral-large-latest` (this is the Mistral AI primary model — accessed via Mistral Cloud account)
 4. Click the **Fallback Model — GPT-3.5 Turbo** node
    - Connect the `OpenRouter account` credential
-   - Model: `openai/gpt-3.5-turbo`
+   - Model: `openai/gpt-4.1-mini` (this is the OpenAI fallback model — accessed via OpenRouter account)
 5. Click the **JSON Validation Guard** node — confirm these 6 conditions exist:
    - `incident_title` is not empty
    - `severity` equals `Medium`
@@ -454,12 +446,12 @@ Step 3 → Activate WF1 last (the trigger that starts everything)
 ### How to test the AI fallback model
 
 1. Open WF1 → click Primary Model — Mistral 7B node
-2. Change the model name to `mistralai/fake-model-test`
+2. Change the model name to `mistral-fake-model-test`
 3. Click Test Workflow
 4. After it runs open the Run logs tab
-5. The `model_used` column should show `openai/gpt-3.5-turbo`
+5. The `model_used` column should show `openai/gpt-4.1-mini` — ARIA switched from Mistral AI to OpenAI automatically
 6. This proves the fallback is working
-7. Change the model name back to `mistralai/mistral-7b-instruct` when done
+7. Change the model name back to `mistral-large-latest` when done
 
 ---
 
@@ -544,6 +536,6 @@ Only Medium severity incidents go through the full document creation pipeline. T
 | **Authors** | Mark Muinde & Paul Murithi |
 | **System** | ARIA — Automated Response & Intelligence Analyst |
 | **Platform** | n8n v2.15.0 (Self Hosted) |
-| **AI Models** | OpenRouter — mistralai/mistral-7b-instruct + openai/gpt-3.5-turbo |
+| **AI Models** | Primary: Mistral AI — mistral-large-latest (via Mistral Cloud) | Fallback: OpenAI — gpt-4.1-mini (via OpenRouter) |
 | **Course** | AI Automation — Week 10 Final Capstone |
 | **Year** | 2026 |
