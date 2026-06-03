@@ -9,16 +9,6 @@
 
 ARIA is a production-grade AI-powered incident response pipeline built on **n8n**. It automatically ingests system incident logs every hour, performs forensic triage using a dual-model AI strategy, routes Medium severity incidents for **human approval**, creates formal post-mortem reports in Google Docs, and logs every execution in a structured 23-column governance audit trail.
 
-### Rubric coverage
-
-| Criterion | Score | Evidence |
-|---|---|---|
-| C1 — Structured AI Output & JSON Reliability | 10/10 | 3-layer validation: ARIA prompt + LangChain parser + JSON guard IF node |
-| C2 — Fault Tolerance & Resilient Design | 10/10 | 7 error handling techniques, continueErrorOutput, branch isolation, retry |
-| C3 — Model Selection, Constraints & Fallbacks | 10/10 | Mistral-7B primary → GPT-3.5-turbo fallback, model_used logged every run |
-| C4 — Operational Logging & Governance Signals | 10/10 | 23-column Run Logs tab written every execution, 3 entry points to WF3 |
-
----
 
 ## Project Structure
 
