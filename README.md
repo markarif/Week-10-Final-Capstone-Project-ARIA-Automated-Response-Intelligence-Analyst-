@@ -507,25 +507,25 @@ Only Medium severity incidents go through the full document creation pipeline. T
 ## Screenshots
 
 ### Workflow 1 — Data Ingestion & AI Analysis
-![WF1 Canvas](screenshots/wf1_canvas.png)
+![WF1 Canvas](Screenshots/Wf%201%20canva.png)
 
 ### Workflow 2 — Doc Creation & Escalation Routing
-![WF2 Canvas](screenshots/wf2_canvas.png)
+![WF2 Canvas](Screenshots/Wf%202%20canva.png)
 
 ### Workflow 3 — Operational Logging & Governance
-![WF3 Canvas](screenshots/wf3_canvas.png)
+![WF3 Canvas](Screenshots/Wf%203%20Canva.png)
 
 ### Execution Logs
-![Execution Logs](screenshots/execution_logs.png)
+![Execution Logs](Screenshots/execution%20log%203.png)
 
 ### Run Logs Tab — Google Sheets
-![Run Logs](screenshots/run_logs_sheet.png)
+![Run Logs](Screenshots/execution%20log%20wf%201.png)
 
 ### ARIA Approval Email
-![Approval Email](screenshots/approval_email.png)
+![Approval Email](Screenshots/approval%20email.png)
 
 ### Generated Google Doc Report
-![Google Doc](screenshots/google_doc_report.png)
+![Google Doc](Screenshots/google%20doc%20report.png)
 
 ---
 
